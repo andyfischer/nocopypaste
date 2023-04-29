@@ -1,9 +1,9 @@
 
 # nocopypaste #
 
-Handful of command line scripts for automating various coding tasks with OpenAI's chat API (GPT 3.5).
+Handful of command line scripts for automating various coding tasks with OpenAI's chat API (using gpt-3.5-turbo).
 
-Currently optimized for Typescript code.
+Currently optimized for working with Typescript code.
 
 Current state is that this project has a lot of random opinions and is changing rapidly. I'm expecting
 that people might want to see the project as an example but might not use it directly.
@@ -28,8 +28,9 @@ Command line syntax:
 Available commands:
 
  - `bin/gpt chat <filename>` - Submit the file as a chat transcript, and save the response.
- - `bin/gpt writeDocs <filename>` - Ask ChatGPT to write Markdown documentation for the file and save it.
- - `bin/gpt rewrite <filename>` - Ask ChatGPT to fix/rewrite the file. Warning: this will overwrite the file with whatever the chat returns.
+ - `bin/gpt writeUnitTest <filename>` - Ask ChatGPT to write a unit test for the file, and save it.
+ - `bin/gpt writeDocs <filename>` - Ask ChatGPT to write Markdown documentation for the file, and save it.
+ - `bin/gpt rewrite <filename>` - Ask ChatGPT to fix/rewrite the entire file. Especially good at filling in any "TODO" comments. Warning: this will overwrite the file with whatever the chat returns.
 
 
 
