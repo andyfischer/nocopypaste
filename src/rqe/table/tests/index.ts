@@ -1,0 +1,10 @@
+
+import './Schema.test'
+import './Table.test'
+import './Table.bugs.test'
+import './Table.delete.test'
+import './Table.has.test'
+import './Table.update.test'
+import './Table.replaceAll.test'
+import './SchemaGrind.test'
+import './streamToTable.test'
