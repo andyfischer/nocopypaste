@@ -41,6 +41,14 @@ export async function writeUnitTest({filename, helper}: {filename: string, helpe
     helper.finish();
 }
 
+/*
+  summarizeSourceFile
+
+  Ask ChatGPT to summarize the source file and save it to <filename>.docs.md
+
+  This file is intended to be used for both humans and also in future ChatGPT requests. (in the
+  future I'm planning to use the docs as part of prompt generation.
+*/
 export async function summarizeSourceFile({ filename, helper }: { filename: string, helper: TaskHelper }) {
     const summaryFilename = filename.replace(Path.extname(filename), '.docs.md');
 
@@ -91,8 +99,8 @@ export async function summarizeSourceFile({ filename, helper }: { filename: stri
 /*
    rewriteSourceFile
 
-   Send the entire file to ChatGPT with instructions to fix it, especially replacing any
-   sections marked 'TODO'. Overwrite the file with the response.
+   Send the entire file to ChatGPT with instructions to fix it. Especially replacing any
+   sections marked 'TODO'. Overwrites the file with the response.
 */
 export async function rewriteSourceFile({ filename, helper }: { filename: string, helper: TaskHelper }) {
     const chat = await helper.complete({

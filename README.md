@@ -8,6 +8,8 @@ Currently optimized for Typescript code.
 Current state is that this project has a lot of random opinions and is changing rapidly. I'm expecting
 that people might want to see the project as an example but might not use it directly.
 
+If you're just curious about the prompts then they are here: [src/codeTasks.ts](./src/codeTasks.ts)
+
 # Setup #
 
  - `yarn install` or `npm install`
