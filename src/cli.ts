@@ -6,6 +6,7 @@ import { ChatHistory, readChatHistoryFromFile } from './ChatHistory'
 import { complete, CompletionReq } from './api'
 import { Stream, c_done, c_error, c_item, c_related } from './rqe/Stream'
 import { writeUnitTest, summarizeSourceFile, rewriteSourceFile } from './codeTasks'
+import { completeChatFile } from './chatTranscriptTasks'
 
 require('source-map-support/register');
 require('dotenv').config({ path: Path.resolve(__dirname, '../.env')});

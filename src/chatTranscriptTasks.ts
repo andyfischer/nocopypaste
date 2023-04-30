@@ -2,7 +2,7 @@
 import { TaskHelper } from './cli'
 import { ChatHistory, readChatHistoryFromFile } from './ChatHistory'
 
-async function completeChatFile({filename, helper}: { filename: string, helper: TaskHelper }) {
+export async function completeChatFile({filename, helper}: { filename: string, helper: TaskHelper }) {
     const chat = await readChatHistoryFromFile(filename);
 
     if (chat.isCompletedByAssistant()) {
