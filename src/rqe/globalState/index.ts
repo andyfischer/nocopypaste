@@ -1,7 +1,6 @@
 
 import { declaredFunctionToHandler } from '../handler/NativeCallback';
-import { Graph } from '../graph'
-import { parseHandler } from '../parser/parseHandler'
+import { Graph, QueryLike, QueryParameters } from '../graph'
 
 let _graph: Graph;
 
@@ -15,4 +14,9 @@ export function getGraph() {
 
 export function exposeFunc(decl: string, func: Function) {
     const handler = declaredFunctionToHandler(decl, func);
+    getGraph().mount([ handler ]);
+}
+
+export function query(queryStr: QueryLike, params?: QueryParameters) {
+    return getGraph().query(queryStr, params);
 }

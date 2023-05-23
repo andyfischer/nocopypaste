@@ -1,6 +1,6 @@
 
-import { toException, ErrorItem, ErrorType } from './Errors'
-import { captureException } from './Errors'
+import { toException, ErrorItem } from './Errors'
+import { captureException, ErrorContext } from './Errors'
 import { openAsyncIterator } from './utils/openAsyncIterator'
 import { StreamSuperTrace, StreamSuperDuperTrace } from './config'
 
@@ -25,8 +25,13 @@ export const c_done = 'items_done';
 export const c_error = 'error';
 export const c_header = 'header';
 export const c_related = 'related';
+export const c_comment = 'comment';
 export const c_schema = 'schema';
 export const c_delete = 'delete';
+export const c_info = 'info';
+export const c_warn = 'warn';
+
+export type LogLevel = typeof c_info | typeof c_warn
 
 export interface StreamItem<ItemType = any> { t: typeof c_item, item: ItemType }
 export interface StreamClose { t: typeof c_close }
@@ -35,11 +40,12 @@ export interface StreamHeader { t: typeof c_header, comment?: string }
 export interface StreamSchema { t: typeof c_schema, item: any }
 export interface StreamRestart { t: typeof c_restart }
 export interface StreamRelatedItem { t: typeof c_related, item: any }
+export interface StreamComment { t: typeof c_comment, message: string, level?: LogLevel, details?: any }
 export interface StreamDone { t: typeof c_done }
 export interface StreamDelete { t: typeof c_delete, item: any }
 
 export type StreamEvent<ItemType = any> = StreamSchema | StreamItem<ItemType> | StreamError
-    | StreamRelatedItem
+    | StreamRelatedItem | StreamComment
     | StreamClose | StreamHeader
     | StreamRestart | StreamDone | StreamDelete
 
@@ -174,7 +180,8 @@ export class Stream<ItemType = any> implements StreamReceiver {
                     return;
                 }
 
-                events.push(msg);
+                if (events)
+                    events.push(msg);
             }
         });
     }
@@ -188,6 +195,19 @@ export class Stream<ItemType = any> implements StreamReceiver {
             throw new UsageError("Stream did not finish synchronously");
 
         return events;
+    }
+
+    collectItemsSync(): ItemType[] {
+        const items: ItemType[] = [];
+        for (const event of this.collectEventsSync()) {
+            switch (event.t) {
+                case c_error:
+                    throw toException(event.error);
+                case c_item:
+                    items.push(event.item);
+            }
+        }
+        return items;
     }
 
     promiseEvents() {
@@ -263,8 +283,17 @@ export class Stream<ItemType = any> implements StreamReceiver {
         this.receive({ t: c_error, error });
     }
 
-    putException(err: Error) {
-        this.receive({ t: c_error, error: captureException(err) });
+    putException(err: Error, context?: ErrorContext) {
+        this.receive({ t: c_error, error: captureException(err, context) });
+    }
+
+    closeWithException(err: Error, context?: ErrorContext) {
+        this.putException(err, context);
+        this.close();
+    }
+
+    comment(message: string, level?: LogLevel, details?: any) {
+        this.receive({ t: c_comment, message, level, details });
     }
 
     done() {
@@ -272,6 +301,11 @@ export class Stream<ItemType = any> implements StreamReceiver {
     }
 
     close() {
+        this.receive({t: c_close});
+    }
+
+    closeWithError(error: ErrorItem) {
+        this.receive({t: c_error, error});
         this.receive({t: c_close});
     }
 

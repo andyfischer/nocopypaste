@@ -1,7 +1,7 @@
 
 import { timedOut } from '../utils/timedOut'
 import { Expect } from './Expect'
-import { IDSource } from '../utils/IDSource'
+import { StringIDSource } from '../utils/IDSource'
 import { ErrorItem } from '../Errors'
 import { MultiMap } from '../utils/MultiMap'
 import { green, red, yellow, black, grey, greenBg, redBg, yellowBg } from '../repl/AnsiColors'
@@ -49,7 +49,7 @@ export class TestFramework {
 
     //globalGraph: Graph
     testTimeoutMs = 5000
-    testRunId = new IDSource()
+    testRunId = new StringIDSource()
     scenarios: Scenario[] = [{ t: 'default_scenario' }]
 
     constructor(/*globalGraph?: Graph*/) {

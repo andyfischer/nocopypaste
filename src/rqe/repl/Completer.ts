@@ -1,8 +1,8 @@
 
-import { Graph } from '../graph'
+import { GraphLike } from '../graph'
 // import { listEveryVerb } from '../verbs/_list'
 
-export function getCompletions(graph: Graph, line: string): string[] {
+export function getCompletions(graph: GraphLike, line: string): string[] {
     if (!line || line === "")
         return [];
 

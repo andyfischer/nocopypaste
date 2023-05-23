@@ -40,7 +40,6 @@ export function formatItems(state: TableFormatState, items: Iterable<Item>): For
 
         for (const [ attr, value ] of Object.entries(item)) {
             // console.log('to string' ,value, formatValue(value))
-            let cellLineCount = 1;
 
             const cellStr = formatValue(value, state.schema && state.schema[attr]);
 

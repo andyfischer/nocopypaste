@@ -1,5 +1,5 @@
 
-import { it, expect } from '../../test'
+import { it } from '../../test'
 import { compileSchema } from '..'
 
 it("bug with each() and empty item", () => {

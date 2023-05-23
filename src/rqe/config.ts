@@ -9,6 +9,10 @@ export const VerboseLogFilteredEmptyValue = false;
 export const VerboseLogCallMountPoint = false;
 export const VerboseLogEveryPlanExecution = false;
 
+// Caching
+export const VerboseLogCacheActivity = false;
+export const VeryVerboseLogCacheActivity = false;
+
 // Matching
 export const WarnOnMultipleMatches = false;
 

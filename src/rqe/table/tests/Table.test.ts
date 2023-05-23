@@ -80,7 +80,7 @@ it("table3 supports item listening", () => {
     const stream = table.listen();
     stream.sendTo({ receive(evt) { events.push(evt) }});
 
-    expect(events).toEqual([{t: 'patch_mode'}]);
+    expect(events).toEqual([]);
     events = [];
 
     table.insert({ a: 123 })

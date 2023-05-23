@@ -119,5 +119,7 @@ export function declaredFunctionToHandler(decl: string, callback: Function) {
         }, stream);
 
         return stream;
-    })
+    });
+
+    return handler;
 }

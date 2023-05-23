@@ -1,7 +1,6 @@
 
 import { it, expect } from '../../test'
 import { compileSchema } from '..'
-import { checkInvariantsOnTable } from '../checkInvariants'
 
 it("table3 supports has()", () => {
     const table = compileSchema({

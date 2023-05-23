@@ -1,6 +1,6 @@
 
 import { parseQuery } from '../parser'
-import { QueryTag, Query } from '../query'
+import { Query } from '../query'
 
 export function parseCommandLineArgs(): Query {
     const str = process.argv.slice(2).join(' ');

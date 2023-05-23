@@ -75,6 +75,7 @@ export class IndexSchema {
 
 export class Schema<TableType extends Table<any> = Table<any>> {
     name: string
+    decl: SchemaDecl
     attrs: SchemaAttr[] = []
     funcs = new Map<string, SchemaFunc>()
     indexes: IndexSchema[] = []
@@ -86,11 +87,31 @@ export class Schema<TableType extends Table<any> = Table<any>> {
     setupTable: TableInitStep[] = []
     preInsert: PreInsertStep[] = []
 
-    constructor(name: string) {
-        this.name = name;
+    frozen: boolean
+
+    constructor(decl: SchemaDecl) {
+        this.decl = decl;
+        this.name = decl.name;
+    }
+
+    freeze() {
+        if (this.frozen)
+            return;
+        for (const attr of this.attrs)
+            attr.freeze();
+        this.frozen = true;
+        Object.freeze(this);
     }
 
     createTable(): TableType {
         return createTable(this) as TableType;
+    }
+
+    addFuncs(funcs: string[]) {
+        const updatedDecl = {
+            ...this.decl,
+            funcs: this.decl.funcs.concat(funcs)
+        }
+        return compileSchema(updatedDecl);
     }
 }

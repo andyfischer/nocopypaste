@@ -1,5 +1,11 @@
 
-export { Stream, StreamEvent } from './Stream'
-export { getGraph } from './globalState'
+export { Stream, StreamEvent, StreamReceiver } from './Stream'
+export { getGraph, exposeFunc, query } from './globalState'
 export { Task } from './task'
+export { Graph } from './graph'
+export { toQuery } from './query'
 export { randomHex } from './utils/randomHex'
+export { Table, compileSchema, streamToTable } from './table'
+export { callbackToStream } from './handler'
+export { captureException, ErrorExtended } from './Errors'
+export { formatItem } from './Format'

@@ -1,6 +1,6 @@
 
 import { Stream, StreamEvent, c_done, c_error, c_item, c_schema } from '../Stream'
-import { IDSource } from '../utils/IDSource'
+import { StringIDSource } from '../utils/IDSource'
 import { ErrorItem } from '../Errors'
 import { TableFormatState, newTableFormatState, formatItems, updateStateForItems,
     formatHeader, printItems } from './TableFormatter';
@@ -44,7 +44,7 @@ export class ConsoleFormatter {
     // Support both ansi and no-ansi mode?
 
     graph: GraphLike
-    nextTaskId = new IDSource();
+    nextTaskId = new StringIDSource();
     activeTasks = new Map();
     flushDelayMs = 1000;
     log: (...items: any[]) => void

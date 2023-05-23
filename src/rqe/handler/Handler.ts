@@ -2,7 +2,7 @@
 import { Task } from '../task'
 import { Stream } from '../Stream'
 
-export type TaskCallback = (ctx: Task) => Stream
+export type TaskCallback = (task: Task) => Stream
 
 export interface HandlerTag {
     attr: string
@@ -59,12 +59,22 @@ export class Handler {
         }
     }
 
-    has(attr: string) {
+    hasAttr(attr: string) {
         return this.byAttr.has(attr);
     }
 
+    requiresAttr(attr: string) {
+        const tag = this.getTag(attr);
+        return tag && tag.required;
+    }
+
+    requiresValue(attr: string) {
+        const tag = this.getTag(attr);
+        return tag && tag.requiresValue;
+    }
+
     getTag(attr: string) {
-        if (!this.has(attr))
+        if (!this.hasAttr(attr))
             return null;
 
         return this.tags[this.byAttr.get(attr)];

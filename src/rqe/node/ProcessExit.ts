@@ -14,7 +14,10 @@ interface OnExitCallback {
 export function getExitCallbacksTable() {
     if (!_exitCallbacksTable) {
         _exitCallbacksTable = compileSchema({
-            name: 'OnExitCallback'
+            name: 'OnExitCallback',
+            funcs: [
+                'each'
+            ]
         }).createTable() as Table<OnExitCallback>;
     }
 
@@ -38,7 +41,7 @@ export async function gracefulExit(exitCode: number = 0) {
     process.exitCode = exitCode;
 
     let promises = [];
-    for (const { callback } of getExitCallbacksTable().scan()) {
+    for (const { callback } of getExitCallbacksTable().each()) {
         try {
             const result = callback()
             promises.push(result);

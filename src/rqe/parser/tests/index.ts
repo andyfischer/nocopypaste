@@ -1,2 +1,2 @@
 
-import './parseHandler.test.ts.disabled'
+import './parseQuery.test'

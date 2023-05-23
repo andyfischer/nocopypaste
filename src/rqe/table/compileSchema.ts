@@ -15,9 +15,8 @@ export interface SchemaDecl {
     funcs?: string[]
 }
 
-export function compileSchema(decl: SchemaDecl) {
-
-    const schema = new Schema(decl.name);
+export function compileSchema<ItemType = any>(decl: SchemaDecl): Schema<Table<ItemType>> {
+    const schema = new Schema(decl);
     const schemaName = decl.name;
     const attrByStr = new Map<string, SchemaAttr>();
     const indexesNeeded = new Map<string, {needsMulti?:boolean} >();
@@ -143,9 +142,11 @@ export function compileSchema(decl: SchemaDecl) {
         if (parsedFuncName === 'list') {
             const listArgs = (parsed.tags[0].value as Query)
 
-            if (listArgs.tags.length !== 1) {
+            if (!listArgs || !listArgs.tags || listArgs.tags.length === 0)
+                throw new Error("expected one param for list()");
+
+            if (listArgs.tags.length !== 1)
                 throw new Error("not supported yet: get() with multple attrs")
-            }
 
             const listAttr = listArgs.tags[0].attr;
 

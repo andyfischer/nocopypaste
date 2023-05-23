@@ -1,6 +1,6 @@
 
-import { TokenIterator, t_plain_value, t_star, t_slash, t_colon,
-    t_dot, t_question, t_integer, t_dash, t_dollar, t_lbracket, t_rbracket,
+import { TokenIterator, t_plain_value, t_slash, t_colon,
+    t_dot, t_question, t_integer, t_dash, t_dollar,
     t_lparen, t_rparen, t_equals, t_double_dash, lexStringToIterator } from '../lexer'
 import { Query, QueryTag, QueryNode } from '../query'
 import { parseQueryFromTokens } from './parseQuery'

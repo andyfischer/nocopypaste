@@ -4,7 +4,7 @@ import { compileSchema } from "../table";
 export const TestCases = compileSchema({
     name: "TestCases",
     funcs: [
-
+        'listAll',
     ]
 }).createTable();
 

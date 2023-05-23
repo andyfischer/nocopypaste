@@ -1,5 +1,5 @@
 
-import { IDSource } from './utils/IDSource'
+import { StringIDSource } from './utils/IDSource'
 
 export type ErrorType = 'verb_not_found' | 'unhandled_exception' | 'provider_not_found' | 'missing_parameter'
     | 'no_table_found' | 'Unimplemented' | 'TableNotFound'
@@ -11,15 +11,19 @@ export interface ErrorItem {
     errorLayer?: string
     errorMessage?: string
     failureId?: string
+    fromQuery?: string
     stack?: any
-    cause?: Error
+    cause?: any | Error
     info?: any
 }
 
 export interface ErrorContext {
+    errorType?: ErrorType
+    errorLayer?: string
+    cause?: any | Error
 }
 
-let _nextFailureId = new IDSource('fail-');
+let _nextFailureId = new StringIDSource('fail-');
 
 export function errorItemToOneLineString(item: ErrorItem) {
     let out = `error (${item.errorType})`;
@@ -65,26 +69,28 @@ export function captureException(error: Error, context: ErrorContext = {}): Erro
         const errorItem = (error as ErrorExtended).errorItem;
 
         return {
-            errorType: errorItem.errorType || 'unhandled_exception',
             errorMessage: errorItem.errorMessage,
             stack:  errorItem.stack || error.stack,
-            // ...(error as ErrorExtended).errorItem,
+            ...context,
+            errorType: errorItem.errorType || context.errorType || 'unhandled_exception',
         }
     }
 
     if (error instanceof Error) {
         return {
-            errorType: (error as any).errorType || 'unhandled_exception',
             errorMessage: error.message,
             stack: error.stack,
+            ...context,
+            errorType: (error as any).errorType || context.errorType || 'unhandled_exception',
         };
     }
 
     // Received some other value as an error.
     return {
-        errorType: (error as any).errorType || 'unknown_error',
         errorMessage: typeof error === 'string' ? error : ((error as any).errorMessage || (error as any).message),
         stack: (error as any).stack,
+        ...context,
+        errorType: (error as any).errorType || context.errorType || 'unknown_error',
     };
 }
 

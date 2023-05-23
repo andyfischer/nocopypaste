@@ -7,6 +7,7 @@ import { complete, CompletionReq } from './api'
 import { Stream, c_done, c_error, c_item, c_related } from './rqe/Stream'
 import { writeUnitTest, summarizeSourceFile, rewriteSourceFile } from './codeTasks'
 import { completeChatFile } from './chatTranscriptTasks'
+import { runTscAndFix } from './tscFix'
 
 require('source-map-support/register');
 require('dotenv').config({ path: Path.resolve(__dirname, '../.env')});
@@ -83,6 +84,7 @@ async function main() {
         await completeChatFile({ filename: taskArgs[0], helper });
         break;
     case 'writeUnitTest':
+    case 'write-unit-test':
         await writeUnitTest({ filename: taskArgs[0], helper });
         break;
     case 'writeDocs':
@@ -90,6 +92,9 @@ async function main() {
         break;
     case 'rewrite':
         await rewriteSourceFile({ filename: taskArgs[0], helper });
+        break;
+    case 'tsc-fix':
+        await runTscAndFix({ cwd: taskArgs[0], helper });
         break;
     default:
         progress.putError({ errorMessage: "unrecognized task name: " + taskName });

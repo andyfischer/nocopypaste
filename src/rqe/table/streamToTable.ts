@@ -1,6 +1,6 @@
 
 import { Table } from './Table'
-import { Stream, StreamEvent, c_done, c_item, c_close, c_delete, c_error, c_restart } from '../Stream'
+import { Stream, StreamEvent, c_done, c_item, c_delete, c_error, c_restart } from '../Stream'
 
 interface StreamSetup {
     input: Stream
