@@ -81,6 +81,7 @@ async function main() {
 
     switch (taskName) {
     case 'chat':
+    case 'complete':
         await completeChatFile({ filename: taskArgs[0], helper });
         break;
     case 'writeUnitTest':

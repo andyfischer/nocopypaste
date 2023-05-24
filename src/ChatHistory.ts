@@ -1,7 +1,7 @@
 
 import Fs from 'fs/promises'
 import { parseChatHistory, RoleToMacro } from './parseChatFormat'
-import { CompletionItem } from './api'
+import { complete, CompletionReq, CompletionItem } from './api'
 
 export type ChatRole = 'user' | 'system' | 'assistant'
 
@@ -18,8 +18,30 @@ export interface LoosePrompt {
 export class ChatHistory {
     messages: ChatMessage[]
 
-    constructor(prompt: LoosePrompt) {
-        this.messages = prompt.messages || [{ role: 'user', content: prompt.prompt }];
+    constructor(prompt?: LoosePrompt) {
+        this.messages = [];
+
+        if (prompt) {
+            this.messages = prompt.messages || [{ role: 'user', content: prompt.prompt }];
+        }
+    }
+
+    addSystem(content: string) {
+        if (this.messages.length > 0) {
+            throw new Error("can't add a system message, this chat is non-empty");
+        }
+
+        this.messages.push({
+            role: 'system',
+            content
+        });
+    }
+
+    addUser(content: string) {
+        this.messages.push({
+            role: 'user',
+            content
+        });
     }
 
     isCompletedByAssistant() {
@@ -33,7 +55,7 @@ export class ChatHistory {
         for (const message of this.messages) {
             if (roleTitleNeedsNewline)
                 lines.push('');
-            lines.push(RoleToMacro[message.role]);
+            lines.push(`# ${RoleToMacro[message.role]} #`);
             lines.push('');
             lines.push(message.content);
             roleTitleNeedsNewline = true;
@@ -42,7 +64,7 @@ export class ChatHistory {
     }
 
     async writeToFile(filename: string) {
-        await Fs.writeFile(filename, this.toStringFormat());
+        await Fs.writeFile(filename, this.toStringFormat(), 'utf8');
     }
 
     addFromAPI(items: CompletionItem[]) {
@@ -79,6 +101,22 @@ export class ChatHistory {
             throw new Error('Chat is not completed by assistant');
 
         return this.messages[this.messages.length-1].content;
+    }
+
+    async fetchCompletion() {
+        const req = {
+            messages: this.messages,
+        }
+
+        const newMessages = await (complete(req)
+               /*
+            .spyEvents(evt => {
+                if (evt.t === c_related && evt.item.t === 'token_cost')
+                    this.progress.put(evt.item);
+            })*/
+            .promiseItems());
+
+        this.addFromAPI(newMessages);
     }
 }
 

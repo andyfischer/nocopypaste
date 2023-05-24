@@ -45,12 +45,14 @@ export function* parseChatMessages(s: string) {
 
     for (let line of lines) {
 
-        if (TextMacros[line]) {
+        const lineWithoutFormating = line.replaceAll('#','').trim();
+
+        if (TextMacros[lineWithoutFormating]) {
             const message = outputMessage();
             if (message)
                 yield message;
 
-            currentRole = TextMacros[line].role;
+            currentRole = TextMacros[lineWithoutFormating].role;
             continue;
         }
 

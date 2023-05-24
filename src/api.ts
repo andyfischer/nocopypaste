@@ -144,7 +144,7 @@ export function complete({ messages, prompt, maxTokens }: CompletionReq) {
         model: DefaultModel,
         messages: messages,
         temperature: 0.7,
-        max_tokens: maxTokens || DefaultMaxTokens,
+        // max_tokens: maxTokens || DefaultMaxTokens,
         /*
         top_p:1.0,
         frequency_penalty:0.5,
