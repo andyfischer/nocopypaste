@@ -4,6 +4,7 @@ import Path from 'path';
 import { Stream } from './rqe'
 import { fileExists } from './rqe/node/fs'
 import { TaskHelper } from './cli';
+import { CodeTask } from './CodeTask'
 
 async function findTestDirectory(baseDir: string) {
     for (const relativeDir of ['tests','__tests__']) {
@@ -103,11 +104,21 @@ export async function summarizeSourceFile({ filename, helper }: { filename: stri
    sections marked 'TODO'. Overwrites the file with the response.
 */
 export async function rewriteSourceFile({ filename, helper }: { filename: string, helper: TaskHelper }) {
+
+    const codeTask = new CodeTask(helper.progress);
+
+    await codeTask.includeFileWithContext(filename);
+
+    // send log message for files that were included
+
+    // await codeTask.getSourceForPrompt();
+    
     const chat = await helper.complete({
         prompt: `Fix or complete the following code file. Replace any sections marked TODO `
             +`with working code.\n\n`
-            +(await Fs.readFile(filename, 'utf8'))
+            +(await codeTask.getSourceForPrompt())
     });
+    
 
     await helper.saveResults(filename, chat.getAnswer());
     helper.finish();
