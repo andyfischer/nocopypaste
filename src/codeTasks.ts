@@ -105,7 +105,7 @@ export async function summarizeSourceFile({ filename, helper }: { filename: stri
 export async function rewriteSourceFile({ filename, helper }: { filename: string, helper: TaskHelper }) {
     const chat = await helper.complete({
         prompt: `Fix or complete the following code file. Replace any sections marked TODO `
-            +`your implementation code.\n\n`
+            +`with working code.\n\n`
             +(await Fs.readFile(filename, 'utf8'))
     });
 
