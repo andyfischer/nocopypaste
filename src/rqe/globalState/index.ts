@@ -13,8 +13,7 @@ export function getGraph() {
 }
 
 export function exposeFunc(decl: string, func: Function) {
-    const handler = declaredFunctionToHandler(decl, func);
-    getGraph().mount([ handler ]);
+    return getGraph().exposeFunc(decl, func);
 }
 
 export function query(queryStr: QueryLike, params?: QueryParameters) {

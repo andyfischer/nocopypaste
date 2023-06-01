@@ -1,4 +1,4 @@
-import { it, expect } from '../../test'
+import { it, expect } from '../../testing'
 import { compileSchema } from '..'
 import { Stream } from '../../Stream'
 import { streamToTable } from '../streamToTable'

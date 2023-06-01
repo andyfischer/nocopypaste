@@ -1,6 +1,6 @@
 import { Stream, c_item, c_done, c_close } from '../../Stream';
 import { Options, streamToCsv } from '../streamToCsv';
-import { it, expect } from '../../test'
+import { it, expect } from '../../testing'
 
   let input: Stream;
   let output: Stream;

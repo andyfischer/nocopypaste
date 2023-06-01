@@ -21,7 +21,7 @@ export interface ExitEvent {
     code: number
 }
 
-export function spawn(command: string | string[], options: SpawnOptions) {
+export function spawn(command: string | string[], options: SpawnOptions = {}) {
 
     if (typeof command === 'string') {
         command = command.split(' ')

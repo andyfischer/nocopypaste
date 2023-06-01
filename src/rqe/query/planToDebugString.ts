@@ -13,7 +13,7 @@ interface FormatPlanOptions {
     executionType?: ExecutionType
 }
 
-export function logPlanToConsole(opts: FormatPlanOptions) {
+export function planToDebugString(opts: FormatPlanOptions) {
     const { plan } = opts;
     const printer = opts.printer || new IndentPrinter();
     printer.log(`${opts.prefix || 'Plan:'} (${plan.query ? plan.query.toQueryString(): ''}):`)
@@ -56,7 +56,7 @@ export function logPlanToConsole(opts: FormatPlanOptions) {
         */
        /*
         if (plan.joinPlan.rhsPlan)
-            logPlanToConsole({ prefix: 'Join rhsPlan:', plan: plan.joinPlan.rhsPlan, printer });
+            toDebugString({ prefix: 'Join rhsPlan:', plan: plan.joinPlan.rhsPlan, printer });
             */
         printer.unindent();
     }

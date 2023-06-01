@@ -26,6 +26,7 @@ export function createTable(schema: Schema): Table {
         items: defaultIndex && defaultIndex.items,
         indexType: defaultIndex && defaultIndex.indexType,
         listenerStreams: null,
+        insert: null, // will be added later
         supportsFunc(funcName: string) {
             return schema.funcs.has(funcName)
         },
@@ -36,7 +37,7 @@ export function createTable(schema: Schema): Table {
 
     let tableProxy: Table;
 
-    // Create callbacks for each func
+    // Create callbacks for each func.
     for (const [ name, func ] of schema.funcs) {
         tableObject[name] = (...args) => {
             return func.handler(tableProxy, args);
@@ -62,7 +63,7 @@ export function createTable(schema: Schema): Table {
     if (schema.supportsStatusTable)
         initializeNewTableWithStatus(tableProxy, tableObject);
 
-    // Create a proxy for better errors (todo- make this an optional debugging mode)
+    // Create a proxy for better error messages (todo- make this an optional debugging mode?)
     tableProxy = new Proxy(tableObject, {
         get(target, methodOrAttributeName) {
             if (target.hasOwnProperty(methodOrAttributeName)) {

@@ -3,6 +3,7 @@ import { Schema } from './Schema'
 import { MultiMap } from '../utils/MultiMap'
 import type { Stream } from '../Stream'
 import type { StatusTableItem } from './StatusTable'
+import type { DiffItem } from './diff'
 
 export interface Table<ItemType = any> {
     schema: Schema
@@ -13,7 +14,10 @@ export interface Table<ItemType = any> {
 
     indexes: Map<string,TableIndex>
 
-    insert?(item: ItemType): ItemType
+    insert(item: ItemType): ItemType
+
+    // Typical accessors
+    listAll?(): ItemType[]
 
     item_to_uniqueKey?(item: ItemType): any
     item_matches_uniqueKey?(item: ItemType, uniqueKey: any): boolean
@@ -25,6 +29,9 @@ export interface Table<ItemType = any> {
     listen?(): Stream
     listenerStreams?: Stream[]
 
+    // Diff
+    diff?(compare: Table): IterableIterator<DiffItem>
+
     // Status
     status?: Table<StatusTableItem>
     isLoading?(): boolean
@@ -33,6 +40,15 @@ export interface Table<ItemType = any> {
 
     // Other functions added based on schema.funcs
     [ funcName: string ]: any
+
+    /*
+     Generated functions can include:
+
+     get_with_<attr>(attrValue: any): ItemType
+       - Return a single items where attr = attrValue. If there are multiple matches, return the first.
+     list_with_<attr>(attrValue: any): ItemType[]
+       - Return an Array of items where attr = attrValue
+     */
 }
 
 export interface MultiMapIndex {

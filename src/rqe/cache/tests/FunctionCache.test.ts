@@ -1,6 +1,6 @@
 import { getRequestCacheSchema, CacheTable, getCacheItem, listenToCacheData, startUsingCacheItem, stopUsingCacheItem } from '../FunctionCache';
 import { Stream } from '../../Stream';
-import { it, expect } from '../../test'
+import { it, expect } from '../../testing'
 
 function newCache() {
     return getRequestCacheSchema().addFuncs(['count']).createTable();

@@ -1,5 +1,6 @@
 
 import './Schema.test'
+import './diff.test'
 import './Table.test'
 import './Table.bugs.test'
 import './Table.delete.test'

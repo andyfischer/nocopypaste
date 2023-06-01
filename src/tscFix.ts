@@ -15,7 +15,7 @@ export async function runTscAndFix({cwd, helper}) {
         ]
     }).createTable();
 
-    for await (const { line } of output) {
+    for await (const { line } of (output as any)) {
         if (!line || line == '')
             continue;
         const parsed = parseTscOutput(line);

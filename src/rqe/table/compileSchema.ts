@@ -8,6 +8,7 @@ import { getWithAttr, hasWithAttr, getSingleValue, listWithAttr, listAll, each, 
         updateAll, updateWithAttr,
         preInsert, insert, sendToListeners, deleteWithAttr, deleteAll, replaceAll } from './RuntimeFunctions'
 import { Query } from '../query'
+import { diffTables } from './diff'
 
 export interface SchemaDecl {
     name: string
@@ -45,12 +46,24 @@ export function compileSchema<ItemType = any>(decl: SchemaDecl): Schema<Table<It
         parsed = parsed as Query;
 
         // first tag should be the attr name
+        const attrTag = parsed.tags[0];
         const attrName = parsed.tags[0].attr;
 
         const attrInfo = new SchemaAttr(attrName);
 
         if (attrByStr.has(attrName))
             throw new Error("duplicate attr: " + attrName);
+
+        if (attrTag.isQuery()) {
+            for (const tag of (attrTag.value as Query).tags) {
+                if (tag.attr === 'auto') {
+                    attrInfo.isAuto = true;
+                    continue;
+                }
+
+                throw new Error(`unrecognized tag on attr "${attrName}": ${tag.attr}`);
+            }
+        }
 
         for (const tag of parsed.tags.slice(1)) {
             if (tag.attr === 'auto') {
@@ -254,7 +267,17 @@ export function compileSchema<ItemType = any>(decl: SchemaDecl): Schema<Table<It
             continue;
         }
 
-        throw new Error("unrecognized func: " + parsed.tags[0].attr);
+        if (parsedFuncName === 'diff') {
+            declareFunc('diff', (table: Table, args) => {
+                if (args.length !== 1)
+                    throw new Error(`diff expected 1 arg`);
+                const compareTable = args[0];
+                return diffTables(table, compareTable);
+            });
+            continue;
+        }
+
+        throw new Error("compileSchema: unrecognized func: " + parsed.tags[0].attr);
     }
 
     // default functions: 'insert' and 'preInsert'
@@ -328,16 +351,6 @@ export function compileSchema<ItemType = any>(decl: SchemaDecl): Schema<Table<It
         }
     }
 
-    // Figure out the default index
-    if (schema.primaryUniqueIndex) {
-        schema.defaultIndex = schema.primaryUniqueIndex;
-    } else {
-        for (const index of schema.indexes) {
-            schema.defaultIndex = index;
-            break;
-        }
-    }
-
     // Add some functions that rely on having a primary unique index
     if (schema.primaryUniqueIndex) {
         const primaryUniqueAttr = schema.primaryUniqueIndex.attrs[0];
@@ -360,6 +373,23 @@ export function compileSchema<ItemType = any>(decl: SchemaDecl): Schema<Table<It
 
             return item[primaryUniqueAttr] === uniqueKey;
         });
+
+        declareFunc('get_using_uniqueKey', (table: Table, args) => {
+            if (args.length !== 1)
+                throw new Error('get_using_uniqueKey expected 1 arg');
+
+            return getWithAttr(schema, 'get_using_uniqueKey', primaryUniqueAttr, table, args)
+        });
+    }
+
+    // Figure out the default index
+    if (schema.primaryUniqueIndex) {
+        schema.defaultIndex = schema.primaryUniqueIndex;
+    } else {
+        for (const index of schema.indexes) {
+            schema.defaultIndex = index;
+            break;
+        }
     }
 
     return schema;

@@ -1,6 +1,6 @@
 
 import { tokenizeString, LexedText } from "..";
-import { it, expect } from '../../test'
+import { it, expect } from '../../testing'
 
 function consise(result: LexedText) {
   return result.tokens.map((token: any) => {

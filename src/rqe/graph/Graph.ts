@@ -5,6 +5,8 @@ import { Query } from '../query'
 import { Stream } from '../Stream'
 import { compileSchema, Table, Schema } from '../table'
 import { GraphModule } from './GraphModule'
+import { declaredFunctionToHandler } from '../handler/NativeCallback';
+import { createPlan, ExpectedValue, executePlan } from '../query'
 
 export type QueryLike = string | Query
 export type QueryParameters = any
@@ -15,6 +17,7 @@ const schema_modules = compileSchema({
         'id(auto)'
     ],
     funcs: [
+        'listAll',
         'get(id)',
         'each',
     ]
@@ -77,8 +80,15 @@ export class Graph implements GraphLike {
     }
 
     query(queryLike: QueryLike, params?: QueryParameters): Stream {
-        throw new Error("todo - implement query");
-        return new Stream()
+        const query = toQuery(queryLike);
+        params = params || new Map();
+        const expectedInput: ExpectedValue = params.has('$input') ? { t: 'some_value' } : { t: 'no_value' };
+        const plan = createPlan(this, {}, query, expectedInput);
+
+        const output = new Stream();
+
+        executePlan(plan, params, output);
+        return output;
     }
 
     mount(handlers: Handler[]) {
@@ -87,10 +97,17 @@ export class Graph implements GraphLike {
         return module;
     }
 
+    exposeFunc(decl: string, func: Function) {
+        const handler = declaredFunctionToHandler(decl, func);
+        this.mount([ handler ]);
+    }
+
     *eachHandler() {
-        for (const module of this.modules.each())
-            for (const handler of module.handlers)
+        for (const module of this.modules.each()) {
+            for (const handler of module.handlers) {
                 yield handler;
+            }
+        }
     }
 
     getTable<T = any>(schema: Schema<Table<T>>) {

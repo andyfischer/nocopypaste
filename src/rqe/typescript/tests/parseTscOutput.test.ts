@@ -1,5 +1,5 @@
 import { parseTscOutput, ParsedOutputItem } from '../parseTscOutput';
-import { it, expect } from '../../test';
+import { it, expect } from '../../testing';
 
 it("correctly parses example", () => {
     const sample = `src/mail-server/ops/SimulatedActivity.ts(19,44): error TS2339: Property 'oneAttr' does not exist on type 'Stream<any>'.`

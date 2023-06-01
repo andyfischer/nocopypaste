@@ -63,6 +63,7 @@ export class Stream<ItemType = any> implements StreamReceiver {
     receiver: StreamReceiver = null
     closedByUpstream = false;
     closedByDownstream = false;
+    debugDescription?: string;
 
     // Backlog data (if the output isn't connected yet)
     backlog: StreamEvent[] = []
@@ -98,7 +99,6 @@ export class Stream<ItemType = any> implements StreamReceiver {
     }
 
     receive(event: StreamEvent) {
-
         if (this.closedByDownstream)
             throw new BackpressureStop();
 
@@ -118,6 +118,7 @@ export class Stream<ItemType = any> implements StreamReceiver {
             }
         }
 
+        // Check for 'close' event.
         switch (event.t) {
         case c_close:
             if (this.closedByUpstream)
@@ -172,16 +173,19 @@ export class Stream<ItemType = any> implements StreamReceiver {
 
         this.sendTo({
             receive(msg: StreamEvent) {
-                if (msg.t === c_done) {
+                if (events === null)
+                    return;
+
+                if (events)
+                    events.push(msg);
+
+                if (msg.t === c_done || msg.t === c_close) {
                     callback(events);
 
                     events = null;
                     callback = null;
                     return;
                 }
-
-                if (events)
-                    events.push(msg);
             }
         });
     }
@@ -210,12 +214,21 @@ export class Stream<ItemType = any> implements StreamReceiver {
         return items;
     }
 
+    collectOneItemSync(): ItemType {
+        const items = this.collectItemsSync();
+        if (items.length === 0)
+            throw new Error("collectOneItemSync: Stream did not return any items");
+        return items[0];
+    }
+
     promiseEvents() {
         return new Promise<StreamEvent[]>((resolve, reject) => {
             this.collectEvents(resolve);
         });
     }
 
+    // Promise that waits for the stream to finish. Any errors will be thrown.
+    // Returns a list of output items.
     promiseItems() {
         return new Promise<ItemType[]>((resolve, reject) => {
             let items: ItemType[] = [];
@@ -235,16 +248,40 @@ export class Stream<ItemType = any> implements StreamReceiver {
             });
         });
     }
+    
+    // Promise that waits for the stream to finish. Any errors will be thrown.
+    // Ignores output items.
+    wait() {
+        return new Promise<void>((resolve, reject) => {
+            this.sendTo({
+                receive(msg: StreamEvent) {
+
+                    if (msg.t === c_done) {
+                        resolve();
+                    } else if (msg.t === c_error) {
+                        reject(toException(msg.error));
+                    }
+                }
+            });
+        });
+    }
+
+    async promiseOneItem(): Promise<ItemType> {
+        const items = await this.promiseItems();
+        if (items.length === 0)
+            throw new Error("promiseOneItem: stream did not output any items");
+        return items[0];
+    }
 
     // Consume this stream as a sync iterator.
     *[Symbol.iterator]() {
-        yield* this.collectEventsSync();
+        yield* this.collectItemsSync();
     }
     
     // Consume this stream as an async iterator.
-    async* [Symbol.asyncIterator]() {
+    async* [Symbol.asyncIterator](): AsyncIterableIterator<ItemType> {
 
-        const { send, iterator } = openAsyncIterator();
+        const { send, iterator } = openAsyncIterator<StreamEvent<ItemType>>();
 
         this.sendTo({ receive: send });
 
@@ -256,7 +293,7 @@ export class Stream<ItemType = any> implements StreamReceiver {
                 yield evt.item;
                 break;
             case c_error:
-                throw toException(evt.item);
+                throw toException(evt.error);
             }
         }
     }
@@ -350,6 +387,13 @@ export class Stream<ItemType = any> implements StreamReceiver {
         return output;
     }
 
+    spyItems(callback: (ItemType) => void) {
+        return this.transform(item => {
+            callback(item);
+            return item;
+        });
+    }
+
     closeByDownstream() {
         if (this.closedByDownstream)
             return;
@@ -382,11 +426,6 @@ export class Stream<ItemType = any> implements StreamReceiver {
 export function isStream(value: any) {
     return value?.t === 'stream'
 }
-
-export function isPromise(value: any) {
-    return !!(value?.then);
-}
-
 
 export class BackpressureStop extends Error {
     is_backpressure_stop = true

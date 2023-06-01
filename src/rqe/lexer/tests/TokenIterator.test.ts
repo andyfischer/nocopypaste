@@ -1,5 +1,5 @@
 
-import { it, expect } from '../../test'
+import { it, expect } from '../../testing'
 import { TokenIterator } from '../TokenIterator'
 import { t_plain_value, t_space, tokenizeString } from '..';
 

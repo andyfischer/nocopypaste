@@ -5,8 +5,9 @@ import Fs from 'fs/promises'
 import { ChatHistory, readChatHistoryFromFile } from './ChatHistory'
 import { complete, CompletionReq } from './api'
 import { Stream, c_done, c_error, c_item, c_related } from './rqe/Stream'
-import { writeUnitTest, summarizeSourceFile, rewriteSourceFile } from './codeTasks'
+import { writeUnitTest, summarizeSourceFile } from './codeTasks'
 import { completeChatFile } from './chatTranscriptTasks'
+import { parseCommandLineArgs } from './rqe/node/parseCommandLineArgs'
 import { runTscAndFix } from './tscFix'
 import { CodeTask } from './CodeTask'
 
@@ -80,56 +81,12 @@ function printHelp() {
 }
 
 async function main() {
-    const taskName = process.argv[2];
-    const taskArgs = process.argv.slice(3);
+    const args = parseCommandLineArgs();
+    const taskName = args.getPositionalAttr(0);
+    const taskArgs = args.withoutFirstTag();
 
     const progress = new Stream();
     const helper = new TaskHelper({ progress });
-
-    if (!taskName) {
-        printHelp();
-        return;
-    }
-
-    switch (taskName) {
-    case 'chat':
-    case 'complete':
-        await completeChatFile({ filename: taskArgs[0], helper });
-        break;
-    case 'writeUnitTest':
-    case 'write-unit-test':
-        await writeUnitTest({ filename: taskArgs[0], helper });
-        break;
-    case 'writeDocs':
-        await summarizeSourceFile({ filename: taskArgs[0], helper });
-        break;
-    case 'rewrite':
-        await rewriteSourceFile({ filename: taskArgs[0], helper });
-        break;
-    case 'tsc-fix':
-        await runTscAndFix({ cwd: taskArgs[0], helper });
-        break;
-    case 'todo': {
-        const filename = taskArgs[0];
-        const codeTask = helper.startCodeTask();
-
-        await codeTask.includeFileWithContext(filename);
-        
-        const chat = await helper.complete({
-            prompt: `In the following code, replace any sections marked TODO `
-                +`with working code.\n\n`
-                +(await codeTask.getSourceForPrompt())
-        });
-
-        await helper.saveResults(filename, chat.getAnswer());
-        helper.finish();
-    }
-        break;
-    default:
-        progress.putError({ errorMessage: "unrecognized task name: " + taskName });
-        printHelp();
-        break;
-    }
 
     progress.sendTo(msg => {
         switch (msg.t) {
@@ -161,6 +118,74 @@ async function main() {
 
         }
     });
+
+    if (!taskName) {
+        printHelp();
+        return;
+    }
+
+    switch (taskName) {
+    case 'chat':
+    case 'complete':
+        await completeChatFile({ filename: taskArgs.getPositionalAttr(0), helper });
+        break;
+    case 'writeUnitTest':
+    case 'write-unit-test':
+        await writeUnitTest({ filename: taskArgs.getPositionalAttr(0), helper });
+        break;
+    case 'writeDocs':
+        await summarizeSourceFile({ filename: taskArgs.getPositionalAttr(0), helper });
+        break;
+    case 'rewrite': {
+        const codeTask = helper.startCodeTask();
+        const filename = taskArgs.getPositionalAttr(0);
+
+        let prompt = `Fix, improve or complete the following code file. Replace any sections marked TODO `
+            +`with working code.`;
+
+        if (taskArgs.hasAttr('prompt-file')) {
+            const promptFile = taskArgs.getAttr('prompt-file').value as string;
+            progress.put({ message: 'loading prompt from: ' + promptFile })
+            prompt = await Fs.readFile(promptFile, 'utf8');
+        }
+
+        await codeTask.includeFileWithContext(filename);
+
+        const chat = await helper.complete({
+            prompt: prompt + `\n\n`
+                +(await codeTask.getSourceForPrompt())
+        });
+
+        await chat.writeToFile('debug_transcript.md')
+
+        await helper.saveResults(filename, chat.getAnswer());
+        helper.finish();
+        break;
+    }
+    case 'tsc-fix':
+        await runTscAndFix({ cwd: taskArgs.getPositionalAttr(0), helper });
+        break;
+    case 'todo': {
+        const filename = taskArgs.getPositionalAttr(0);
+        const codeTask = helper.startCodeTask();
+
+        await codeTask.includeFileWithContext(filename);
+        
+        const chat = await helper.complete({
+            prompt: `In the following code, replace any sections marked TODO `
+                +`with working code.\n\n`
+                +(await codeTask.getSourceForPrompt())
+        });
+
+        await helper.saveResults(filename, chat.getAnswer());
+        helper.finish();
+    }
+        break;
+    default:
+        progress.putError({ errorMessage: "unrecognized task name: " + taskName });
+        printHelp();
+        break;
+    }
 }
 
 main()

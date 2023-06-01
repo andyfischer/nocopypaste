@@ -1,5 +1,5 @@
 
-import { it, expect } from '../../test'
+import { it, expect } from '../../testing'
 import { compileSchema } from '..'
 
 it("supports replaceAll", () => {

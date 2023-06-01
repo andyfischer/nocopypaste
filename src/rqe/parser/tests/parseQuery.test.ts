@@ -1,5 +1,5 @@
 import { parseQuery } from "../parseQuery";
-import { it, expect } from '../../test'
+import { it, expect } from '../../testing'
 
 it("parses a single step query", () => {
     parseQuery("a b c");

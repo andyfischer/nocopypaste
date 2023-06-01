@@ -42,6 +42,10 @@ export class Query {
         return this.tagsByAttr.get(attr);
     }
 
+    getPositionalAttr(index: number) {
+        return this.tags[index]?.attr;
+    }
+
     toQueryString() {
         const out = [];
 
@@ -50,6 +54,15 @@ export class Query {
         }
 
         return out.join(' ');
+    }
+
+    toItemValue() {
+        const item: any = {};
+        for (const tag of this.tags) {
+            item[tag.attr] = tag.value;
+        }
+
+        return item;
     }
 
     _refresh() {

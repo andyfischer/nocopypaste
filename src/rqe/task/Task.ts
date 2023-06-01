@@ -20,6 +20,8 @@ export class Task {
     withQuery: Query
     queryParameters: QueryParameters
 
+    t = 'task'
+
     constructor(args: Args) {
         this.graph = args.graph;
         this.withQuery = args.withQuery;
@@ -43,8 +45,9 @@ export class Task {
 
     getValue(attr: string) {
         const tag = this.withQuery.getAttr(attr);
-        if (!tag)
+        if (!tag) {
             return null;
+        }
 
         if (this.queryParameters.has(attr))
             return this.queryParameters.get(attr);
@@ -52,7 +55,7 @@ export class Task {
         return tag.value;
     }
 
-    query(queryLike: QueryLike, params?: QueryParameters) {
+    query(queryLike: QueryLike, params?: QueryParameters): Stream<any> {
         return this.graph.query(queryLike, params);
     }
 

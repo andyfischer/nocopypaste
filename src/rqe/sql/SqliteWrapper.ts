@@ -1,5 +1,5 @@
 
-import { openAsyncIterator } from '../utils/openAsyncIterator'
+import { Stream } from '../Stream'
 import { parseSql } from './parser'
 import { getGeneratedMigration } from './migration'
 
@@ -14,6 +14,7 @@ export class SqliteWrapper {
         this.db = db;
     }
 
+    /*
     run(sql: string, params?: Params): Promise<{ changes: Array<any>, lastID: any }> {
         return new Promise((resolve, reject) => {
             this.db.run(sql, params, function (err) {
@@ -104,4 +105,5 @@ export class SqliteWrapper {
             throw new Error("Unsupported statement in migrate(). Only supporting 'create table' right now");
         }
     }
+*/
 }

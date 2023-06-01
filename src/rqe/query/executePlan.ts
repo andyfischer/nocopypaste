@@ -1,7 +1,6 @@
 
-import { Plan, ExecutionType } from './QueryPlan'
+import { Plan, ExecutionType, OutputFilterReshape } from './QueryPlan'
 import { Stream } from '../Stream'
-import { logPlanToConsole } from './logPlanToConsole'
 import { Task } from '../task'
 import { VerboseLogEveryPlanExecution } from '../config'
 import { runTaskCallback } from '../task/runTaskCallback'
@@ -9,9 +8,9 @@ import { runTaskCallback } from '../task/runTaskCallback'
 type QueryExecutionContext = any;
 export type QueryParameters = any;
 
-/*
- function reshapingFilter(plan: Plan, parameters: QueryParameters, output: Stream, filter: OutputFilterReshape): Stream {
-    const fixed = new Stream(plan.graph, 'reshaping output for: ' + plan.tuple.toQueryString());
+function reshapingFilter(plan: Plan, parameters: QueryParameters, output: Stream, filter: OutputFilterReshape): Stream {
+    const fixed = new Stream();
+    fixed.debugDescription = 'reshaping output for: ' + plan.query.toQueryString();
 
     fixed.sendTo({
         receive(evt) {
@@ -25,7 +24,7 @@ export type QueryParameters = any;
                     const attr = outputAttr.attr;
                     switch (outputAttr.t) {
                     case 'from_item':
-                        if (has(item, attr)) {
+                        if (item[attr] !== undefined) {
                             fixedItem[attr] = item[attr];
                             usedAnyValuesFromItem = true;
                         } else {
@@ -37,7 +36,7 @@ export type QueryParameters = any;
                         break;
                     }
                     case 'constant':
-                        if (has(item, attr)) {
+                        if (item[attr] !== undefined) {
                             fixedItem[attr] = item[attr];
                         } else {
                             fixedItem[attr] = outputAttr.value;
@@ -64,6 +63,7 @@ export type QueryParameters = any;
     return fixed;
 }
 
+/*
 function whereAttrsEqualFilter(plan: Plan, params: QueryParameters, output: Stream, filter: OutputFilterWhereAttrsEqual): Stream {
     const fixed = new Stream(plan.graph, 'reshaping output for: ' + plan.tuple.toQueryString());
 
@@ -108,11 +108,13 @@ function whereAttrsEqualFilter(plan: Plan, params: QueryParameters, output: Stre
 
 */
 
-export function executePlan(plan: Plan, parameters: QueryParameters, input: Stream, output: Stream, executionType: ExecutionType = 'normal') {
+export function executePlan(plan: Plan, parameters: QueryParameters, output: Stream, executionType: ExecutionType = 'normal') {
+
+    const input: Stream = parameters.get('$input');
 
     if (VerboseLogEveryPlanExecution) {
         let prefix = 'Executing plan:'
-        logPlanToConsole({plan, parameters, prefix, executionType});
+        plan.consoleLog();
     }
 
     if (plan.knownError) {
@@ -135,11 +137,11 @@ export function executePlan(plan: Plan, parameters: QueryParameters, input: Stre
 
     let taskOutput = output;
 
+    // Apply filters to the stream.
     for (const filter of plan.outputFilters) {
         switch (filter.t) {
         case 'reshape':
-            throw new Error("need to fix: reshapingFilter");
-            // taskOutput = reshapingFilter(plan, parameters, taskOutput, filter);
+            taskOutput = reshapingFilter(plan, parameters, taskOutput, filter);
             break;
         case 'whereAttrsEqual':
             throw new Error("need to fix: whereAttrsEqual filter");
@@ -169,6 +171,10 @@ export function executePlan(plan: Plan, parameters: QueryParameters, input: Stre
 
     if (plan.outputSchema)
         task.output.receive({ t: 'schema', item: plan.outputSchema });
+
+    if (!plan.nativeCallback) {
+        throw new Error("executePlan: plan is missing a nativeCallback");
+    }
 
     runTaskCallback(task, plan.nativeCallback);
 }

@@ -1,5 +1,5 @@
 import { tokenizeString, LexedText, t_line_comment } from "..";
-import { it, expect } from '../../test'
+import { it, expect } from '../../testing'
 
 function consise(result: LexedText) {
   return result.tokens.map((token: any) => {
