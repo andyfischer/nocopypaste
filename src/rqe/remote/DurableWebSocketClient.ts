@@ -13,7 +13,7 @@ export interface SetupOptions<OutgoingType, IncomingType> {
 
 const ReconnectionRecentWindowTime = 30;
 
-export class ReconnectingWebSocketClient<OutgoingType, IncomingType> implements RequestClient<OutgoingType> {
+export class DurableWebSocketClient<OutgoingType, IncomingType> implements RequestClient<OutgoingType> {
     connection: WebSocketClientConnection<OutgoingType, IncomingType>
     options: SetupOptions<OutgoingType, IncomingType>
     attempts: Table
@@ -93,7 +93,7 @@ export class ReconnectingWebSocketClient<OutgoingType, IncomingType> implements 
         // console.log(`tryReconnect: ${recentCount} recent attempts, most recent at ${new Date(mostRecentAttempt)} (${Date.now() - mostRecentAttempt} ms ago)`);
 
         if (recentCount >= 5) {
-            // console.error('ReconnectingWebSocketClient tryReconnect - giving up');
+            // console.error('DurableWebSocketClient tryReconnect - giving up');
             // Give up after 5 attempts within 1 minute
             return;
         }
@@ -136,7 +136,7 @@ export class ReconnectingWebSocketClient<OutgoingType, IncomingType> implements 
         if (this.connection)
             return this.connection.sendRequest(request, output);
         else
-            throw new Error("ReconnectingWebSocketClient.sendRequest: no connection")
+            throw new Error("DurableWebSocketClient.sendRequest: no connection")
     }
 
     close() {

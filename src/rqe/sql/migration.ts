@@ -1,10 +1,20 @@
 
 import { CreateTable, parseSql } from './parser'
+import { SqliteDatabase } from './SqliteDatabase'
+import { DatabaseSchema } from './DatabaseSchema'
 
 interface Migration {
-    isDestructive: boolean
-    statements: string[]
+    statements: MigrationStatement[]
     warnings: string[]
+}
+
+interface MigrationStatement {
+    sql: string
+    isDestructive: boolean
+}
+
+export interface MigrationOptions {
+    includeDestructive: boolean
 }
 
 function parseCreateTable(input: CreateTable | string): CreateTable {
@@ -63,26 +73,65 @@ export function getGeneratedMigration(fromTableLoose: CreateTable | string, toTa
             needToInsert.push(toColumn);
     }
 
-    const statements: string[] = [];
-    let isDestructive = false;
+    const statements: MigrationStatement[] = [];
 
     for (const column of needToInsert) {
         let def = column.definition;
         if (def.toLowerCase().indexOf("not null") !== -1) {
-            warnings.push("Can't have 'not null' on new column: " + column.name);
+            warnings.push(`not yet supported: migrate an existing table to use 'not null' (column: ${column.name})`);
             def = def.replace(/not null ?/i, '');
         }
-        statements.push(`alter table ${fromTable.name} add column ${column.name} ${def};`);
+
+        statements.push({
+            sql: `alter table ${fromTable.name} add column ${column.name} ${def};`,
+            isDestructive: false
+        });
     }
 
     for (const column of needToDelete) {
-        isDestructive = true;
-        statements.push(`alter table ${fromTable.name} drop column ${column.name};`);
+        statements.push({
+            sql: `alter table ${fromTable.name} drop column ${column.name};`,
+            isDestructive: true,
+        });
     }
 
     return {
-        isDestructive,
         statements,
         warnings,
     };
+}
+
+export async function runDatabaseSloppynessCheck(db: SqliteDatabase, schema: DatabaseSchema) {
+    const schemaTables = new Map();
+
+    for (const statementText of schema.statements) {
+        const statement = parseSql(statementText);
+
+        switch (statement.t) {
+        case 'create_table':
+            schemaTables.set(statement.name, statement);
+            break;
+        case 'create_index':
+            schemaTables.set(statement.index_name, statement);
+            break;
+        }
+    }
+
+    // Sloppyness check - Look for extra tables
+    for (const { name: foundTableName } of db.list(`select name from sqlite_schema`)) {
+        if (foundTableName.startsWith('sqlite_'))
+            continue;
+        if (foundTableName.startsWith('_litestream'))
+            continue;
+        if (foundTableName === 'dm_database_meta')
+            continue;
+
+        if (schemaTables.has(foundTableName)) {
+            // future: could examine the contents of the table.
+            continue;
+        }
+
+        db.warn(`Database has a table or index that's not part of the app schema: ${foundTableName}`
+                     + ` (schemaName=${schema.name})`)
+    }
 }

@@ -1,6 +1,5 @@
 
 import { Stream, c_done, c_close } from '../Stream'
-import { RequestMessage, PostedRequest } from './HttpServer'
 import { splitJson } from '../utils/splitJson'
 import { ActiveStreamSet, RequestClient } from '../remote'
 import { captureException } from '../Errors'
@@ -8,6 +7,19 @@ import { captureException } from '../Errors'
 interface QueuedMessage<RequestType> {
     output: Stream
     message: RequestMessage<RequestType>
+}
+
+export interface RequestMessage<RequestType> {
+    requestId: number
+    request: RequestType
+}
+
+export interface PostedRequest<RequestType> {
+    messages: RequestMessage<RequestType>[]
+}
+
+export interface PostResponse<RequestType> {
+    requests: RequestMessage<RequestType>[]
 }
 
 interface Config {

@@ -1,22 +1,6 @@
 
-import { Stream, StreamEvent, c_done } from '../Stream'
-
-export interface PostedRequest<RequestType> {
-    messages: RequestMessage<RequestType>[]
-}
-
-interface ResponseMessage {
-    requestId: number
-}
-
-interface PostResponse<RequestType> {
-    requests: RequestMessage<RequestType>[]
-}
-
-export interface RequestMessage<RequestType> {
-    requestId: number
-    request: RequestType
-}
+import { Stream, StreamEvent, c_done } from '../../Stream'
+import { PostedRequest, RequestMessage, PostResponse } from '../../remote/HttpClient'
 
 interface ResponseEvent {
     requestId: number
