@@ -38,6 +38,12 @@ export interface Table<ItemType = any> {
     hasError?(): boolean
     waitForData?(): Promise<void>
 
+    // Debug functions
+    consoleLog?(): void
+
+    // Common functions
+    each?(): IterableIterator<ItemType>
+
     // Other functions added based on schema.funcs
     [ funcName: string ]: any
 

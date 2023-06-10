@@ -3,6 +3,7 @@ import { Schema } from './Schema'
 import { Table, TableIndex } from './Table'
 import { initializeNewTableWithStatus } from './StatusTable'
 import { checkInvariantsOnTable } from './checkInvariants'
+import { consoleLogTable } from './debugFunctions'
 
 export function createTable(schema: Schema): Table {
     const indexes = new Map<string,TableIndex>()
@@ -32,7 +33,10 @@ export function createTable(schema: Schema): Table {
         },
         checkInvariants() {
             checkInvariantsOnTable(tableProxy)
-        }
+        },
+        consoleLog() {
+            consoleLogTable(tableProxy);
+        },
     };
 
     let tableProxy: Table;
@@ -76,7 +80,7 @@ export function createTable(schema: Schema): Table {
                     `Schema ${schema.name} doesn't support .listen() (fix: add 'listen' to funcs)`);
             }
 
-            throw new Error(`${schema.name} doesn't support: ${String(methodOrAttributeName)}`);
+            throw new Error(`${schema.name} table doesn't support: ${String(methodOrAttributeName)}()`);
         }
     });
 

@@ -78,6 +78,15 @@ export function compileSchema<ItemType = any>(decl: SchemaDecl): Schema<Table<It
         schema.attrs.push(attrInfo);
     }
 
+    function supportEach() {
+        declareFunc('each', function *handler(table: Table, args) {
+            yield* each(table);
+        });
+    }
+
+    // just include .each by default
+    supportEach();
+
     // parse decl.funcs
     for (const funcDecl of decl.funcs || []) {
         let parsed = parseSingleQueryFromString(funcDecl);
@@ -207,9 +216,7 @@ export function compileSchema<ItemType = any>(decl: SchemaDecl): Schema<Table<It
         }
 
         if (parsedFuncName === 'each') {
-            declareFunc('each', function *handler(table: Table, args) {
-                yield* each(table);
-            });
+            supportEach();
             continue;
         }
 

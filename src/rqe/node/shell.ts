@@ -21,6 +21,11 @@ export interface ExitEvent {
     code: number
 }
 
+export interface SpawnProcess {
+    output: Stream
+    proc: any
+}
+
 export function spawn(command: string | string[], options: SpawnOptions = {}) {
 
     if (typeof command === 'string') {
@@ -31,30 +36,30 @@ export function spawn(command: string | string[], options: SpawnOptions = {}) {
 
     const output = new Stream<ProcessEvent>();
 
-    const child = nodeSpawn(command[0], command.slice(1), options);
+    const proc = nodeSpawn(command[0], command.slice(1), options);
 
-    child.stdout.on('data', data => {
+    proc.stdout.on('data', data => {
         const dataStr = data.toString();
         for (const line of dataStr.split('\n')) {
             output.put({ t: 'stdout', line })
         }
     });
 
-    child.stderr.on('data', data => {
+    proc.stderr.on('data', data => {
         const dataStr = data.toString();
         for (const line of dataStr.split('\n')) {
             output.put({ t: 'stderr', line })
         }
     });
 
-    child.on('error', err => {
+    proc.on('error', err => {
         output.putError({errorType: 'child_process_error', cause: err})
     });
 
-    child.on('close', code => {
+    proc.on('close', code => {
         output.put({ t: 'exit', code });
         output.close();
     });
 
-    return [ output, child ] as [ typeof output, typeof child ];
+    return { output, proc }
 }

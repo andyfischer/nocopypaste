@@ -14,7 +14,7 @@ interface MigrationStatement {
 }
 
 export interface MigrationOptions {
-    includeDestructive: boolean
+    includeDestructive?: boolean
 }
 
 function parseCreateTable(input: CreateTable | string): CreateTable {

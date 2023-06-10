@@ -6,7 +6,8 @@
     "dev": "yarn tsc && node dist/run.js",
     "tsc": "tsc -p .",
     "build": "tsc -p .",
-    "test": "jest"
+    "test": "jest",
+    "dev-code-project": "node --watch dist/code-project/run.js"
   },
   "author": "",
   "license": "ISC",

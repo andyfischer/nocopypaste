@@ -179,7 +179,7 @@ export class Stream<ItemType = any> implements StreamReceiver {
                 if (events)
                     events.push(msg);
 
-                if (msg.t === c_done || msg.t === c_close) {
+                if (events !== null && msg.t === c_done || msg.t === c_close) {
                     callback(events);
 
                     events = null;
@@ -235,14 +235,19 @@ export class Stream<ItemType = any> implements StreamReceiver {
 
             this.sendTo({
                 receive(msg: StreamEvent) {
-
-                    if (msg.t === c_item) {
+                    switch (msg.t) {
+                    case c_item:
                         items.push(msg.item)
-                    } else if (msg.t === c_done) {
-                        resolve(items);
+                        break;
+                    case c_done:
+                    case c_close:
+                        if (items !== null)
+                            resolve(items);
                         items = null;
-                    } else if (msg.t === c_error) {
+                        break;
+                    case c_error:
                         reject(toException(msg.error));
+                        break;
                     }
                 }
             });
@@ -385,6 +390,25 @@ export class Stream<ItemType = any> implements StreamReceiver {
         });
 
         return output;
+    }
+
+    watchItems(callback: (ItemType) => void) {
+        this.sendTo({
+            receive(evt) {
+                switch (evt.t) {
+                    case c_item:
+                        try {
+                            callback(evt.item);
+                        } catch (e) {
+                            console.error("unhandled exception in Stream.watchItems: ", e);
+                        }
+                        break;
+                    case c_error:
+                        console.error("unhandled error in Stream.watchItems: ", evt.error);
+                        break;
+                }
+            }
+        });
     }
 
     spyItems(callback: (ItemType) => void) {

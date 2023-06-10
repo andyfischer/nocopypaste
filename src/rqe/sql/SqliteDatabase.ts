@@ -45,10 +45,17 @@ export class SqliteDatabase {
         yield* statement.iterate.apply(statement, params);
     }
 
-    run(sql: string, params?: any) {
+    run(sql: string, params?: any): { changes: number, lastInsertRowid: number } {
         const statement = this.db.prepare(sql);
         params = paramsToArray(params);
         return statement.run.apply(statement, params);
+    }
+
+    // sql: looks like "from table where ..."
+    exists(sql: string, params?: any) {
+        const result = this.get(`select exists(select 1 ${sql})`, params)
+        console.log({result})
+        return false;
     }
 
     migrateCreateStatement(createStatement: string, options: MigrationOptions) {
@@ -70,6 +77,7 @@ export class SqliteDatabase {
                     continue;
                 }
 
+                this.info(`migrating table: ${migrationStatement} ${JSON.stringify(statement)}`)
                 this.run(migrationStatement.sql);
             }
 
@@ -110,7 +118,7 @@ export class SqliteDatabase {
         }
     }
 
-    migrateToSchema(schema: DatabaseSchema, options: MigrationOptions) {
+    migrateToSchema(schema: DatabaseSchema, options: MigrationOptions = {}) {
         for (const statement of schema.statements) {
             this.migrateCreateStatement(statement, options);
         }
@@ -119,7 +127,7 @@ export class SqliteDatabase {
             this.setupInitialData(statement);
         }
 
-        this.info('finished migrating to schema: ' + schema.name)
+        // this.info('finished migrating to schema: ' + schema.name)
     }
 
     runDatabaseSloppynessCheck(schema: DatabaseSchema) {

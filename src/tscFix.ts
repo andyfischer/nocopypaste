@@ -5,7 +5,7 @@ import { compileSchema } from './rqe'
 
 export async function runTscAndFix({cwd, helper}) {
 
-    const [ output ] = spawn('tsc -p .', { cwd });
+    const { output } = spawn('tsc -p .', { cwd });
 
     const table = compileSchema({
         name: "TscErrors",
