@@ -11,16 +11,24 @@ export async function captureCheckpoint(project: ProjectContext) {
     const getCurrentSha = spawn('git rev-list --max-count=1 HEAD');
 
     const promises = [];
+    const everyModifiedFile = [];
 
     async function captureOneFile(filename: string) {
         try {
             const resolvedFilename = Path.resolve(project.rootDir, filename);
             const contents = await Fs.readFile(filename, 'utf8');
             const md5sum = crypto.createHash('md5').update(contents).digest('hex');
+
+            let blob_id;
             if (!project.changelog.exists(`from blob where hash = ?`, [md5sum])) {
-                project.changelog.run('insert into blob (hash, contents) values (?,?)',
-                                         [md5sum, contents]);
+                blob_id = project.changelog.run('insert into blob (hash, contents) values (?,?)',
+                                         [md5sum, contents])
+                    .lastInsertRowid;
+            } else {
+                blob_id = project.changelog.get(`select id from blob where hash = ?`, [md5sum]).id;
             }
+
+            console.log('found', { md5sum, blob_id })
         } catch (err) {
             console.error(err);
         }

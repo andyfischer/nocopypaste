@@ -10,8 +10,10 @@ export const ChangelogSchema: DatabaseSchema = {
         )`,
         `create table project_checkpoint_modified_file (
             checkpoint_id integer,
+            blob_id integer,
             relpath text not null,
-            foreign key (checkpoint_id) references project_checkpoint(id)
+            foreign key (checkpoint_id) references project_checkpoint(id),
+            foreign key (blob_id) references blob(id)
         )`,
         `create table blob (
             id integer primary key autoincrement,

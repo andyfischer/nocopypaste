@@ -53,13 +53,14 @@ export class SqliteDatabase {
 
     // sql: looks like "from table where ..."
     exists(sql: string, params?: any) {
-        const result = this.get(`select exists(select 1 ${sql})`, params)
-        console.log({result})
-        return false;
+        const fullSql = `select exists(select 1 ${sql})`;
+        const result = this.get(fullSql, params);
+        return result[fullSql] == 1;
     }
 
     migrateCreateStatement(createStatement: string, options: MigrationOptions) {
         const statement = parseSql(createStatement);
+        console.log(statement)
         if (statement.t == 'create_table') {
             const existingTable: any = this.get(`select sql from sqlite_schema where name = ?`, statement.name);
             
@@ -77,7 +78,7 @@ export class SqliteDatabase {
                     continue;
                 }
 
-                this.info(`migrating table: ${migrationStatement} ${JSON.stringify(statement)}`)
+                this.info(`migrating table ${statement.name}: ${migrationStatement.sql}`)
                 this.run(migrationStatement.sql);
             }
 
