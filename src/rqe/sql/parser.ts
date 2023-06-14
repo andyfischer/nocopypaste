@@ -1,18 +1,3 @@
-
-/**
- * TODO
- *
- * handle this syntax
- *
- *         create table user_permission(
-            user_id [ID] not null,
-            permission varchar(10) not null,
-            foreign key (user_id) references user(user_id),
-            unique (project_type, name)
-        );
-
-*/
-
 import { tokenizeString, TokenIterator,
     t_lparen, t_rparen, t_comma, t_semicolon, t_dot } from '../lexer'
 
@@ -26,6 +11,7 @@ export interface CreateTable {
     name: string
     columns: CreateTableColumn[]
     references: string[]
+    uniqueConstraints: string[]
 }
 
 export interface CreateIndex {
@@ -52,6 +38,7 @@ function createTable(it: TokenIterator): SqlStatement {
         name,
         columns: [],
         references: [],
+        uniqueConstraints: [],
     }
 
     it.consume(t_lparen);
@@ -61,9 +48,14 @@ function createTable(it: TokenIterator): SqlStatement {
         if (it.tryConsume(t_rparen))
             break;
 
+        it.tryConsume(t_comma);
+
         if (it.nextText().toLowerCase() === 'foreign' && it.nextText(1).toLowerCase() === 'key') {
             const tokens = [];
             let parenDepth = 0;
+
+            it.consume();
+            it.consume();
 
             while (!it.finished()) {
                 if (it.nextIs(t_lparen))
@@ -71,7 +63,7 @@ function createTable(it: TokenIterator): SqlStatement {
                 if (it.nextIs(t_rparen))
                     parenDepth++;
 
-                if (it.nextIs(t_comma))
+                if (parenDepth === 0 && it.nextIs(t_comma))
                     break;
                 if (parenDepth >= 1)
                     break;
@@ -80,6 +72,27 @@ function createTable(it: TokenIterator): SqlStatement {
             }
 
             out.references.push(tokens.join(' '));
+            continue;
+        }
+
+        if (it.nextText().toLowerCase() === 'unique') {
+            it.consume();
+            const tokens = [];
+
+            let parenDepth = 0;
+            while (!it.finished()) {
+                if (it.nextIs(t_lparen))
+                    parenDepth--;
+                if (it.nextIs(t_rparen))
+                    parenDepth++;
+
+                if (parenDepth >= 1)
+                    break;
+
+                tokens.push(it.consumeAsText());
+            }
+
+            out.uniqueConstraints.push(tokens.join(' '));
             continue;
         }
 

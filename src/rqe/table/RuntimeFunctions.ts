@@ -295,6 +295,11 @@ export function* each(table: Table) {
     case 'multimap':
         yield* table.items.values();
         return;
+    case 'single_value':
+        const value = (table as SingleValueIndex).items[0];
+        if (value !== null)
+            yield value;
+        return;
     }
 
     throw new Error(`Schema (${table.schema.name}) internal error: 'each' func didn't expect index type: ${table.indexType}`)
