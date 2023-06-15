@@ -1,0 +1,3 @@
+#! /usr/bin/env node
+
+require('../dist/code-project/cli.js');

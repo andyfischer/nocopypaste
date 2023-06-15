@@ -17,6 +17,8 @@ export interface CreateTable {
 export interface CreateIndex {
     t: 'create_index'
     index_name: string
+    references?: string[]
+    uniqueConstraints?: string[]
 }
 
 export interface InsertItem {

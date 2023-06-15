@@ -7,7 +7,7 @@
     "tsc": "tsc -p .",
     "build": "tsc -p .",
     "test": "jest",
-    "dev-code-project": "node --watch dist/code-project/run.js"
+    "dev-code-project": "node --watch dist/code-project/cli.js"
   },
   "author": "",
   "license": "ISC",
